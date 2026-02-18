@@ -1,0 +1,250 @@
+---
+title: "Paths, Loops, and Secrets"
+subtitle: "From Caesar Ciphers to Infinite Trees"
+author: "Ben Woodruff"
+format: 
+  revealjs:
+    theme: league
+    transition: slide
+    slide-number: true
+    chalkboard: true
+---
+
+## 1. The Clock Arithmetic
+Before we hide secrets, we must understand **Modular Arithmetic**.
+
+* Suppose it's currently 10am. What's the time in 5 hours?
+* Imagine a clock with 26 hours (0 to 25).
+* If you are at letter 'W' (22) and move 10 steps:
+* $22 + 10 = 32 = 26(1) + 6$. 
+* $32 \pmod{26} = 6$ (Letter **'G'**).
+* $x \pmod{n}$ - What's the remainder upon division by $n$. 
+
+---
+
+## 2. The Caesar Cipher
+The simplest shift. Every letter moves the same constant $k$.
+
+**Formula:** $E(x) = (x + k) \pmod{26}$
+
+For simplicity, preserve punctuation and capitalization.
+
+### Examples
+| Message | Key | Encrypted |
+|---------|-----|-----------|
+| MATH    | 3   | PDWK      |
+| GAUSS   | 3   | JDXVV      |
+| Hello, World!   | -2   | Fcjjm, Umpjb!      |
+
+---
+
+## 3. Activity: Human vs. Gemini
+
+Use Gemini to write a Python script for a Caesar Cipher. Use Google Colab to run the script.
+
+- Make sure you can change the key. Preserve punctuation and capitalization.
+
+| Message | Key | Encrypted |
+|---------|-----|-----------|
+| `GAUSS`   | `3`   | `MDXV`      |
+| `Hello, World!`   | `-2`   | `Fcjjm, Umpjb!` |  
+| `???`   | `?`   | `Pbpoxcv ldgz!` |
+
+
+---
+
+## 4. The "State Machine" Cipher
+**The Rule:** The shift is the *cumulative sum* of your key sequence.
+
+**Key:** $[2, 5, -1]$
+
+1. Letter 1: Shift by $2$.
+2. Letter 2: Shift by $(2 + 5) = 7$.
+3. Letter 3: Shift by $(2 + 5 - 1) = 6$.
+4. Letter 4: (Wrap) Shift by $(6 + 2) = 8$.
+
+---
+
+## 4b. Activity: State Machine Verification
+Update your code (Use Gemini). Check your work:
+
+| Message | Key | Encrypted |
+| :--- | :--- | :--- |
+| `APPLE` | `[1, 1, 1]` | `BRSPJ` |
+| `GAUSS` | `[2, -1]` | `IBXUW` |
+| `Hello World!` | `[2,5,-1]` | `Jlrtb Ickdx!` |
+| `???` | `[4,?,?]` | `qvnw twralc bg ykdjo` |
+
+The last example above is much harder to crack.
+
+---
+
+## 4c. Activity: Atbash (flip the alphabet)
+If a sequence key includes zero, then flip the order (a <-> z, b <-> y, etc.) from then on. 
+
+Let's create a few examples by hand, and then update your code.
+
+| Message | Key | Encrypted |
+| :--- | :--- | :--- |
+|   |  |  |
+
+---
+
+## 4d. Activity: Other upgrades
+How could you make this more secure? Have a conversation with Gemini and try adding in extra complexity.
+
+
+---
+
+
+
+## 5. From Loops to Lines
+Why does a cipher feel like a circle? Because we return to 'A'. 
+But the "State Machine" tracks our total path.
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+theta = np.linspace(0, 10*np.pi, 500)
+z = np.linspace(0, 5, 500)
+x = np.cos(theta)
+y = np.sin(theta)
+
+fig = plt.figure(figsize=(10, 5))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot(x, y, z, lw=2, color='cyan')
+ax.set_title("The Universal Cover: R covering S1")
+plt.show()
+```
+
+---
+
+## 6. The Ant's Dictionary
+
+Imagine an ant walking on this circle.
+
+* Every step is a shift.
+* On the **Circle**, the ant is "lost" (is it lap 1 or 10?).
+* On the **Line**, we track its total progress.
+* This is a **Universal Cover**.
+
+---
+
+## 7. Activity: The Two-Loop Ant
+What if the ant has **two** different loops: **Loop A** and **Loop B**?
+
+1. Draw a starting dot.
+2. The ant can go forward/backward on A or B.
+3. **Draw the map:** Represent every possible journey.
+4. In your map, does $AB = BA$? Does it have to?
+
+---
+
+## 8. The Free Group ($F_2$)
+
+If the loops are independent, the "map" is an infinite **Tree**.
+
+### Does Order Matter?
+* Try an **Atbash Flip** (A↔Z).
+* Try shifting by 3, THEN flipping.
+* Now flip, THEN shift by 3.
+* If they are different, the moves do not **commute**.
+
+---
+
+## 9. The Bouquet of Loops
+
+What if there are 3 loops ($F_3$)? 4 loops ($F_4$)? 
+Each loop adds a new direction to our branching tree.
+
+```{python}
+import networkx as nx
+import matplotlib.pyplot as plt
+
+G = nx.balanced_tree(5, 3)
+pos = nx.spring_layout(G)
+nx.draw(G, pos, node_size=20, node_color='orange')
+plt.title(r"Universal Cover for $F_3$")
+plt.show()
+```
+
+---
+
+## 10. The Infinite Bouquet
+We can have an **Infinite Bouquet** ($F_\infty$). 
+The tree remains a nicely behaved (though massive) object... as long as the loops stay "nice."
+
+---
+
+## 11. When Math Breaks - The Hawaiian Earring
+
+**The Hawaiian Earring:** Infinitely many loops getting smaller. The "Tree" here is uncountably complex.
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+def plot_hawaiian_earring(num_loops=100):
+    fig, ax = plt.subplots(figsize=(8, 8))
+    
+    # Generate points for a circle
+    theta = np.linspace(0, 2*np.pi, 200)
+    
+    for n in range(1, num_loops + 1):
+        radius = 1 / n
+        # Center the circle so it touches the origin (0,0)
+        x = radius * np.cos(theta) + radius
+        y = radius * np.sin(theta)
+        
+        ax.plot(x, y, label=f'n={n}' if n <= 5 else None)
+
+    # Formatting the plot
+    ax.set_aspect('equal')
+    ax.axhline(0, color='black', linewidth=0.5, alpha=0.3)
+    ax.axvline(0, color='black', linewidth=0.5, alpha=0.3)
+    ax.set_title(f'Hawaiian Earring ($n={num_loops}$ loops)')
+    plt.grid(True, linestyle=':', alpha=0.6)
+    plt.show()
+
+if __name__ == "__main__":
+    plot_hawaiian_earring()
+```
+
+---
+
+## 11b. When Math Breaks - Topologist's Sine Curve
+
+**Topologist's Sine Curve:** The plot of $(x,sin(1/x))$.
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Set up the domain
+# We need high density near 0 to capture the oscillations
+# logspace or a custom non-linear spacing is better than linspace
+x = np.logspace(-3, 0, 10000)
+y = np.sin(1/x)
+
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Plot the curve
+ax.plot(x, y, color='blue', linewidth=1, label=r'$y = \sin(1/x)$')
+
+# Plot the limit segment {0} x [-1, 1]
+ax.vlines(0, -1, 1, colors='red', linewidth=2, label='Limit segment')
+
+# Aesthetics
+ax.set_title("Topologist's Sine Curve", fontsize=14)
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_xlim(-0.05, 1.05)
+ax.set_ylim(-1.1, 1.1)
+ax.axhline(0, color='black', linewidth=0.5, alpha=0.5)
+ax.axvline(0, color='black', linewidth=0.5, alpha=0.5)
+ax.grid(True, linestyle=':', alpha=0.6)
+ax.legend()
+
+plt.savefig('topologists_sine_curve.png')
+```
